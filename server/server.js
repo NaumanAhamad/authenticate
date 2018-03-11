@@ -8,6 +8,7 @@ const port = process.env.PORT || 3000;
 const { mongoose } = require('./db/indexDB');
 const { Todo } = require('./db/models/todo');
 const { User } = require('./db/models/user');
+const authenticate = require('./middleware/middleware');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -19,6 +20,18 @@ app.use(cors());
 
 app.get('/', (req, res) => {
   res.send('hello world');
+});
+
+app.post('/todos', (req, res) => {
+  let todo = new Todo({ text: req.body.text });
+  todo.save().then(
+    doc => {
+      res.send(doc);
+    },
+    err => {
+      res.sendStatus(404);
+    }
+  );
 });
 
 app.post('/users', (req, res) => {
@@ -36,6 +49,10 @@ app.post('/users', (req, res) => {
       console.log(err);
       res.sendStatus(400);
     });
+});
+
+app.get('/users/me', authenticate, (req, res) => {
+  res.send(req.user.toJson());
 });
 
 let server = app.listen(port, (req, res) => {
